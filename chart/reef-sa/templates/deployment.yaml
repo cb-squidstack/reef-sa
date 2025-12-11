@@ -24,9 +24,11 @@ spec:
 
           {{- $security := .Values.security | default dict }}
           env:
+            {{- if .Values.env }}
             {{- range $key, $value := .Values.env }}
-            - name: {{ $key }}
+            - name: {{ $key | quote }}
               value: {{ $value | quote }}
+            {{- end }}
             {{- end }}
             {{- if .Values.featureFlags.enabled }}
             - name: FM_NAMESPACE
