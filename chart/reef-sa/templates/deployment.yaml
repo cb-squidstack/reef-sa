@@ -24,16 +24,13 @@ spec:
 
           {{- $security := .Values.security | default dict }}
           env:
-           
-            - name: AUTH_DB_URL
-              valueFrom: { secretKeyRef: { name: {{ include "app.fullname" . }}-db, key: AUTH_DB_URL } }
-            - name: AUTH_DB_USER
-              valueFrom: { secretKeyRef: { name: {{ include "app.fullname" . }}-db, key: AUTH_DB_USER } }
-            - name: AUTH_DB_PASSWORD
-              valueFrom: { secretKeyRef: { name: {{ include "app.fullname" . }}-db, key: AUTH_DB_PASSWORD } }
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
             {{- if .Values.featureFlags.enabled }}
             - name: FM_NAMESPACE
-              value: {{ default "calalog" .Values.featureFlags.namespace | quote }}
+              value: {{ default "squidstack" .Values.featureFlags.namespace | quote }}
             {{- end }}
 
           {{- $probes := .Values.probes | default dict }}
