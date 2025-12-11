@@ -24,11 +24,25 @@ spec:
 
           {{- $security := .Values.security | default dict }}
           env:
-            {{- if .Values.env }}
-            {{- range $key, $value := .Values.env }}
-            - name: {{ $key | quote }}
-              value: {{ $value | quote }}
+            {{- with .Values.env.JWT_SECRET }}
+            - name: JWT_SECRET
+              value: {{ . | quote }}
             {{- end }}
+            {{- with .Values.env.REEF_EU_URL }}
+            - name: REEF_EU_URL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.env.REEF_NA_URL }}
+            - name: REEF_NA_URL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.env.REEF_SA_URL }}
+            - name: REEF_SA_URL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.env.REEF_ASIA_URL }}
+            - name: REEF_ASIA_URL
+              value: {{ . | quote }}
             {{- end }}
             {{- if .Values.featureFlags.enabled }}
             - name: FM_NAMESPACE
