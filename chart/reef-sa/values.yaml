@@ -1,0 +1,67 @@
+# -- Container image
+image:
+  repository: gururepservice/reef-sa
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# -- No ingress for this service
+ingress:
+  enabled: false
+
+# -- Service details (ClusterIP only)
+service:
+  type: ClusterIP
+  port: 8080
+  annotations: {}
+
+# -- Pod labels/annotations
+podLabels: {}
+podAnnotations: {}
+
+# -- Resources (tune as needed)
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+# -- Probes (reef services expose /health and /ready)
+probes:
+  liveness:
+    path: /health
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+  readiness:
+    path: /ready
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    failureThreshold: 12
+
+# -- ServiceAccount (optional)
+serviceAccount:
+  create: false
+  name: ""
+  annotations: {}
+
+# -- SecurityContext (optional)
+podSecurityContext: {}
+securityContext: {}
+
+# --- Feature Management (CloudBees FM) ---
+featureFlags:
+  enabled: true
+  secretName: feature-mgmt     # must match the existing Secret name
+  secretKey: FM_KEY            # key inside that Secret
+  mountPath: /app/config       # where to mount in the container
+  fileName: fm.json            # file name in the container (will contain the raw key)
+  createSecret: false          # do NOT create; we're using existing
+  # Namespace prefix for CloudBees FM flags
+  namespace: squidstack
+
+# -- Environment variables
+env:
+  FM_NAMESPACE: "squidstack"

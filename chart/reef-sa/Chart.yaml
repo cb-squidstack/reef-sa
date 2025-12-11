@@ -1,0 +1,6 @@
+apiVersion: v2
+name: reef-sa
+description: Reef regional service (reef-sa) for SquidStack
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
