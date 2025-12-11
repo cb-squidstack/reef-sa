@@ -1,0 +1,87 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: Universal CI - ${{ env.APP_NAME }}
+on:
+  push:
+    branches:
+      - "**"
+  workflow_dispatch:
+permissions:
+  scm-token-own: read
+  scm-token-org: read
+  id-token: write
+env:
+  APP_NAME: reef-sa
+  LANGUAGE: go
+  COVERAGE_ROOT: src
+  DEBUG: "true"
+
+jobs:
+  test:
+    uses: github.com/cb-squidstack/cb-squidstack/.cloudbees/workflows/test-generic.yaml@main
+    with:
+      app_name: reef-sa
+      language: go
+      coverage_root: src
+      debug: "true"
+
+  build:
+    uses: github.com/cb-squidstack/cb-squidstack/.cloudbees/workflows/build-generic.yaml@main
+    with:
+      app_name: reef-sa
+      docker_user: ${{ vars.DOCKER_USER }}
+      commit_sha: ${{ cloudbees.scm.sha }}
+      push_latest: "true"
+    secrets:
+      docker_token: ${{ secrets.DOCKER_TOKEN }}
+
+  deployDev:
+    if: ${{ cloudbees.scm.branch != 'main' }}
+    environment: squid-dev
+    uses: github.com/cb-squidstack/cb-squidstack/.cloudbees/workflows/deploy-generic.yaml@main
+    needs: [test, build]
+    with:
+      environment_name: squid-dev
+      component_name: reef-sa
+      docker_repo: ${{ vars.DOCKER_USER }}/reef-sa
+      uses_postgres: "false"
+      uses_liquibase: "false"
+      artifact_id: ${{ needs.build.outputs.PRIMARY_ARTIFACT_ID }}
+      version: ${{ needs.build.outputs.VERSION }}
+      commit_sha: ${{ cloudbees.scm.sha }}
+      feature_flags_enabled: "true"
+    secrets: inherit
+
+  deployPreProd:
+    if: ${{ cloudbees.scm.branch == 'main' }}
+    environment: squid-preprod
+    uses: github.com/cb-squidstack/cb-squidstack/.cloudbees/workflows/deploy-generic.yaml@main
+    needs: [test, build]
+    with:
+      environment_name: squid-preprod
+      component_name: reef-sa
+      docker_repo: ${{ vars.DOCKER_USER }}/reef-sa
+      uses_postgres: "false"
+      uses_liquibase: "false"
+      artifact_id: ${{ needs.build.outputs.PRIMARY_ARTIFACT_ID }}
+      version: ${{ needs.build.outputs.VERSION }}
+      commit_sha: ${{ cloudbees.scm.sha }}
+      feature_flags_enabled: "true"
+    secrets: inherit
+
+  deployProd:
+    if: ${{ cloudbees.scm.branch == 'main' }}
+    environment: squid-prod
+    uses: github.com/cb-squidstack/cb-squidstack/.cloudbees/workflows/deploy-generic.yaml@main
+    needs: [test, build, deployPreProd]
+    with:
+      environment_name: squid-prod
+      component_name: reef-sa
+      docker_repo: ${{ vars.DOCKER_USER }}/reef-sa
+      uses_postgres: "false"
+      uses_liquibase: "false"
+      artifact_id: ${{ needs.build.outputs.PRIMARY_ARTIFACT_ID }}
+      version: ${{ needs.build.outputs.VERSION }}
+      commit_sha: ${{ cloudbees.scm.sha }}
+      feature_flags_enabled: "true"
+    secrets: inherit
