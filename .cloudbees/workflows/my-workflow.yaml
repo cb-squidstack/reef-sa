@@ -13,7 +13,7 @@ permissions:
 env:
   APP_NAME: reef-sa
   LANGUAGE: go
-  COVERAGE_ROOT: src
+  COVERAGE_ROOT: .
   DEBUG: "true"
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
     with:
       app_name: reef-sa
       language: go
-      coverage_root: src
+      coverage_root: .
       debug: "true"
       enable_smart_tests: "true"
     secrets: inherit
